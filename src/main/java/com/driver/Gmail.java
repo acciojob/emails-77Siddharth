@@ -17,19 +17,18 @@ public class Gmail extends Email {
         inbox = new LinkedList<Mail>() ;
         trash = new LinkedList<Mail>() ;
         temp = new Stack<Mail>();
-
     }
 
     public void receiveMail(Date date, String sender, String message){
         Mail newMail = new Mail(date,sender,message);
         if(inboxSize<=inboxCapacity){
-            inbox.add(newMail);
+            inbox.push(newMail);
             inboxSize++;
         }else{
             Mail curMail = inbox.pollLast();
             inboxSize--;
-            trash.add(curMail);
-            inbox.add(newMail);
+            trash.push(curMail);
+            inbox.push(newMail);
             inboxSize++;
         }
         // If the inbox is full, move the oldest mail in the inbox to trash and add the new mail to inbox.
@@ -48,11 +47,11 @@ public class Gmail extends Email {
                 cur = inbox.pollFirst();
             }
             if (cur.message.contains(message)) {
-                trash.addFirst(cur);
+                trash.push(cur);
                 inboxSize--;
                 while (temp.isEmpty() != true) {
                     Mail m = temp.pop();
-                    inbox.addFirst(m);
+                    inbox.push(m);
                 }
             }
         }
@@ -62,11 +61,13 @@ public class Gmail extends Email {
 
     public String findLatestMessage(){
         // If the inbox is empty, return null
+
         // Else, return the message of the latest mail present in the inbox
-        if (inbox.isEmpty()==true)
+        if (inbox.size()==0)
             return null;
-        else
+        else {
             return inbox.getFirst().message;
+        }
 
     }
 
@@ -95,7 +96,7 @@ public class Gmail extends Email {
         }else{
             while (temp.isEmpty()!=true){
                 cur = temp.pop();
-                inbox.addFirst(cur);
+                inbox.push(cur);
             }
         }
         return count;
