@@ -5,31 +5,28 @@ import java.util.*;
 public class Gmail extends Email {
 
     int inboxCapacity; //maximum number of mails inbox can store
-    Deque<Mail> inbox = null;
-    Deque<Mail> trash = null;
-    Stack<Mail> temp = null;
-    int inboxSize =0;
+    List<Mail> inbox = null;
+    List<Mail> trash = null;
+
     //Inbox: Stores mails.  It is guaranteed that message is distinct for all mails.
     //Trash: Stores mails.
     public Gmail(String emailId, int inboxCapacity) {
         super(emailId);
         this.inboxCapacity = inboxCapacity;
-        inbox = new LinkedList<Mail>() ;
-        trash = new LinkedList<Mail>() ;
-        temp = new Stack<Mail>();
+        inbox = new ArrayList<>() ;
+        trash = new ArrayList<>() ;
+
     }
 
     public void receiveMail(Date date, String sender, String message){
         Mail newMail = new Mail(date,sender,message);
-        if(inboxSize<=inboxCapacity){
-            inbox.push(newMail);
-            inboxSize++;
+        if(inbox.size()<inboxCapacity){
+            inbox.add(newMail);
         }else{
-            Mail curMail = inbox.pollLast();
-            inboxSize--;
-            trash.push(curMail);
-            inbox.push(newMail);
-            inboxSize++;
+            Mail curMail = inbox.get(0);
+            inbox.remove(0);
+            trash.add(curMail);
+            inbox.add(newMail);
         }
         // If the inbox is full, move the oldest mail in the inbox to trash and add the new mail to inbox.
         // It is guaranteed that:
@@ -40,23 +37,16 @@ public class Gmail extends Email {
     }
 
     public void deleteMail(String message){
-        if (inbox.isEmpty()!=true) {
-            Mail cur = inbox.pollFirst();
-            while (inbox.isEmpty() != true && !cur.message.contains(message)) {
-                temp.push(cur);
-                cur = inbox.pollFirst();
-            }
-            if (cur.message.contains(message)) {
-                trash.push(cur);
-                inboxSize--;
-                while (temp.isEmpty() != true) {
-                    Mail m = temp.pop();
-                    inbox.push(m);
-                }
-            }
-        }
+
         // Each message is distinct
         // If the given message is found in any mail in the inbox, move the mail to trash, else do nothing
+        for (int i=0;i<inbox.size();i++){
+            Mail curMail = inbox.get(i);
+            if (curMail.message.contains(message)){
+                inbox.remove(i);
+                trash.add(curMail);
+            }
+        }
     }
 
     public String findLatestMessage(){
@@ -66,7 +56,7 @@ public class Gmail extends Email {
         if (inbox.size()==0)
             return null;
         else {
-            return inbox.getFirst().message;
+            return inbox.get(inbox.size()-1).message;
         }
 
     }
@@ -74,30 +64,22 @@ public class Gmail extends Email {
     public String findOldestMessage(){
         // If the inbox is empty, return null
         // Else, return the message of the oldest mail present in the inbox
-        if (inbox.isEmpty()==true)
+        if (inbox.isEmpty())
             return null;
         else
-            return inbox.getLast().message;
+            return inbox.get(0).message;
     }
 
     public int findMailsBetweenDates(Date start, Date end){
         //find number of mails in the inbox which are received between given dates
         //It is guaranteed that start date <= end date
-        int count =0 ;
-        Mail cur = inbox.pollFirst();
-        while (inbox.isEmpty()!=true){
-            if (cur.date.after(start) && cur.date.before(end) )
+        int count =0;
+        for(int i=inbox.size()-1;i>=0;i--){
+            Mail curMail = inbox.get(i);
+            if (curMail.date.before(end) && curMail.date.after(start)){
                 count++;
-            temp.push(cur);
-            cur = inbox.pollFirst();
-        }
-        if (temp.isEmpty()){
-            return count;
-        }else{
-            while (temp.isEmpty()!=true){
-                cur = temp.pop();
-                inbox.push(cur);
-            }
+            }else if (curMail.date.equals(start) || curMail.date.equals(end))
+                count++;
         }
         return count;
     }
@@ -114,8 +96,8 @@ public class Gmail extends Email {
 
     public void emptyTrash(){
         // clear all mails in the trash
-        while (trash.isEmpty()!=true){
-            trash.poll();
+        while (!trash.isEmpty()){
+            trash.remove(0);
         }
     }
 
